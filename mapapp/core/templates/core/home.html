@@ -115,14 +115,18 @@
                 <div class="threshold-info">
                     <p>Current Threshold:</p>
                     <p class="threshold-value">{{ threshold }} minutes</p>
+                    <p>Current Excel File:</p>
+                    <p class="threshold-value">{{ name }} </p>
                 </div>
-                <form class="threshold-form" method="post">
+                <form class="threshold-form" method="post" >
                     {% csrf_token %}
+                    <input type="hidden" name="oldthreshold" id="oldthreshold" value="{{ threshold }}">
+                    <input type="hidden" name="oldsensitivity" id="oldsensitivity" value="{{ sensitivity }}">
+                    <input type="hidden" name="oldpath" id="oldpath" value="{{ path }}">
+                    <input type="hidden" name="oldname" id="oldname" value="{{ name }}">
                     <label for="threshold">Threshold (in minutes)</label>
                     <div class="threshold-input">
                         <input type="text" name="threshold" id="threshold" placeholder="Enter threshold">
-                        <input type="hidden" name="oldthreshold" id="oldthreshold" value="{{ threshold }}">
-                        <input type="hidden" name="oldsensitivity" id="oldsensitivity" value="{{ sensitivity }}">
                     </div>
                     <br>
                     <label for="slider">Sensitivity(in km) </label>
@@ -133,18 +137,32 @@
                     </div>
 
                     <br>
-                    <button type="submit">Set Threshold</button>
+                    <button type="submit">Set settings</button>
                     
+                </form>
+<hr>
+                <form method="post" class="threshold-form" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="oldthreshold" id="oldthreshold" value="{{ threshold }}">
+                    <input type="hidden" name="oldsensitivity" id="oldsensitivity" value="{{ sensitivity }}">
+                    <input type="hidden" name="oldpath" id="oldpath" value="{{ path }}">
+                    <input type="hidden" name="oldname" id="oldname" value="{{ name }}">
+                    
+                    <label for="threshold">Historical GPS data stream (in .xlsx , with the same format)</label>
+                    <div class="threshold-input">
+                    <input type="file" name="excel_file" accept=".xlsx" class="file-input">
+                    </div>
+                    <button type="submit">Upload</button>
                 </form>
                 <br>
                 <hr>
-                <ul>
+                {% comment %} <ul>
                     <li>Click on the marker to view more information</li>
                     <li>Threshold is for setting stoppage duration</li>
                     <li> Sensitivity is for setting a margin of error in the odometer reading</li>
                     <li>High (default) - odometer reading is highly accurate </li>
                     <li>Low - odometer reading has a margin of error upto 100 km </li>
-                </ul>
+                </ul> {% endcomment %}
             </div>
         
         </div>
