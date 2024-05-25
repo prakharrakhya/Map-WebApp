@@ -40,46 +40,64 @@ def minutes_difference(timestamp1, timestamp2):
 def Home(request):
     error_message = None
     threshhold = 2 #2min
+    path = str(os.getcwd())
+    path = os.path.join(path , 'csvfiles' , 'defaultdata.xlsx')
+    name = 'defaultdata.xlsx'
     sensitivity = 0
     if request.method == 'POST':
         threshhold = float(request.POST.get('oldthreshold'))
         sensitivity = float (request.POST.get('oldsensitivity'))
-        
-        try:
-            sensitivity = float(request.POST.get('sensitivity'))
-            if request.POST.get('threshold'):
-                x = float(request.POST.get('threshold'))
-                if x < 0.001:
-                    error_message = 'threshold should be greater than 1 min'
-                else:
-                    threshhold = x
-            elif request.POST.get('threshold') == '':
-                threshhold = float(request.POST.get('oldthreshold'))
-
-            else:
-                error_message = 'threshold should be greater than 0.001 min'
+        path = request.POST.get('oldpath')
+        name = request.POST.get('oldname')
+        try: 
+                excel_file = request.FILES['excel_file']
+                # Specify the path where you want to save the file on the server
+                upload_folder_path = os.path.join (os.getcwd(), 'csvfiles')
+                # Construct the full file path
+                file_path = os.path.join(upload_folder_path , excel_file.name)
+                
+                # Open a new file in 'write binary' mode and write the uploaded file content to it
+                with open(file_path, 'wb+') as destination:
+                    for chunk in excel_file.chunks():
+                        destination.write(chunk)
+            
+                path = file_path
+                name = excel_file.name
         except:
-            error_message = 'Something went wrong'
+            try:
+                sensitivity = float(request.POST.get('sensitivity'))
+                if request.POST.get('threshold'):
+                    x = float(request.POST.get('threshold'))
+                    if x < 0.001:
+                        error_message = 'threshold should be greater than 1 min'
+                    else:
+                        threshhold = x
+                elif request.POST.get('threshold') == '':
+                    threshhold = float(request.POST.get('oldthreshold'))
+
+                else:
+                    error_message = 'threshold should be greater than 0.001 min'
+            except:
+                error_message = 'Something went wrong'
         
         
     # csv path
-    path = str(os.getcwd())
-    path = path+'\csvfiles\defaultdata.xlsx'
+    
     
     #get ccsv data
+    
+    
     latitudes , longitudes , meter_reading , eventgeneratedTime = DataEmgineering(path)
-
+    
     #setting threshhold make it user querryed
     #seconds
     
     
     # get map
     #centerring map
+    
     m = folium.Map(location = [latitudes[0] , longitudes[0]] , zoom_start=10)
-    
-    #Adding start marker
-    folium.Marker([latitudes[0] , longitudes[0]] , tooltip='start' , popup=f'({latitudes[0]},{longitudes[0]})').add_to(m)
-    
+        
     #Adding End marker
     #folium.Marker([latitudes[10916] , longitudes[10916]]).add_to(m)
     
@@ -116,8 +134,11 @@ def Home(request):
                             <p style="margin: 0;">{StoppageDuration} minutes</p>
                         </div>
                         """
-                folium.Marker([latitudes[k] , longitudes[k]] ,tooltip='click to See More' , popup=popup1 , 
-                          max_width=500).add_to(m)
+                try:
+                    folium.Marker([latitudes[k] , longitudes[k]] ,tooltip='click to See More' , popup=popup1 , 
+                            max_width=500).add_to(m)
+                except:
+                    pass
 
     points.append([latitudes[len(latitudes)-5] , longitudes[len(latitudes)-5]])
     
@@ -127,4 +148,4 @@ def Home(request):
     
     threshhold = float(threshhold/60)
     
-    return render(request , 'core/home.html' , {'m' : m , 'error_message':error_message , 'threshold':threshhold , 'sensitivity':sensitivity})
+    return render(request , 'core/home.html' , {'m' : m , 'error_message':error_message , 'threshold':threshhold , 'sensitivity':sensitivity , 'path':path , 'name':name})
